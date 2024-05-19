@@ -10,7 +10,7 @@ terraform {
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
   features {}
-  # use_oidc = true
+  use_oidc = true
 }
 resource "azurerm_resource_group" "demo_rg" {
   name     = var.resource_group_name
