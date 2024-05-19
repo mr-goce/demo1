@@ -34,6 +34,12 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+    - name: Get Service Principal Secret from Key Vault
+      id: get-sp-secret
+      run: |
+        AZURE_CLIENT_SECRET=$(az keyvault secret show --name e47b7e57-e1b4-4cce-9215-80e9539ebcdd --vault-name dev-kv-0101984 --query value -o tsv)
+        echo "ARM_CLIENT_SECRET=${AZURE_CLIENT_SECRET}" >> $GITHUB_ENV
+
     # Run az commands to confirm sub access
     - name: 'Run az commands'
       run: |
