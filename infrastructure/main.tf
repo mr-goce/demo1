@@ -36,6 +36,16 @@ resource "azurerm_role_assignment" "rolespn" {
   ]
 }
 
+resource "azurerm_role_assignment" "key_vault_admin" {
+  scope                = module.keyvault.keyvault_id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = module.ServicePrincipal.service_principal_object_id
+
+  depends_on = [
+    module.ServicePrincipal,
+    module.keyvault
+  ]
+}
 module "keyvault" {
   source                      = "./modules/keyvault"
   keyvault_name               = var.keyvault_name
