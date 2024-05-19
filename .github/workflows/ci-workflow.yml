@@ -44,6 +44,14 @@ jobs:
     - name: 'Run az commands'
       run: |
         az account show
+
+    - name: Debug Target Branch
+      run: |
+        echo "Target Branch: ${{ github.event.pull_request.base.ref }}"
+
+    - name: Ensure Environment Directory
+      run: |
+        mkdir -p environments/${{ github.event.pull_request.base.ref }}
         
     - name: Set Terraform Variables
       run: |
@@ -73,7 +81,7 @@ jobs:
             echo "keyvault_name = \"${{ secrets.STG_KEYVAULT_NAME }}\"" >> environments/stg/terraform.tfvars
             echo "acr" = \"${{ secrets.STG_ACR}}"" >> environments/dev/terraform.tfvars
             echo "backendsa" = \"${{ secrets.STG.BACKENDSA}}"" >> environments/dev/terraform.tfvars
-            echo "backendcontainer" = \"${{ secrets.STG_BACKEND_CONTAINER}}"" >> environments/dev/terraform.tfvars
+            echo "backendcontainer" = \"${{ secrets.STG_BACKEND_CONTAINER }}"" >> environments/dev/terraform.tfvars
             ;;
           *)
             echo "Unknown environment"
