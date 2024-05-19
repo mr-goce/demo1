@@ -78,12 +78,12 @@ jobs:
     - name: List Files in Directory
       run: |
         pwd
-        ls -la 
+        ls -la ./infrastructure
 
     # Run a Terraform plan
     - name: Terraform plan
       id: plan
-      working-directory: infrastructure
+      working-directory: ./infrastructure
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -91,7 +91,7 @@ jobs:
         GITHUB_REF_NAME: ${{ github.event.pull_request.base.ref }}
       run: |
         #  BRANCH_NAME=$(echo $GITHUB_REF_NAME | awk -F'/' '{print $3}')
-        terraform plan -var-file=infrastructure/environments/dev/terraform.tfvars
+        terraform plan -var-file=environments/dev/terraform.tfvars
       # run: terraform plan -no-color -var-file=environments/dev/terraform.tfvars
 
     # Add a comment to pull requests with plan results
