@@ -44,6 +44,42 @@ jobs:
     - name: 'Run az commands'
       run: |
         az account show
+        
+    - name: Set Terraform Variables
+      run: |
+        case ${{ github.event.pull_request.base.ref }} in
+          "main")
+            echo "resource_group_name = \"${{ secrets.MAIN_RESOURCE_GROUP_NAME }}\"" >> environments/main/terraform.tfvars
+            echo "location = \"${{ secrets.MAIN_LOCATION }}\"" >> environments/main/terraform.tfvars
+            echo "service_principal_name = \"${{ secrets.MAIN_SERVICE_PRINCIPAL_NAME }}\"" >> environments/main/terraform.tfvars
+            echo "keyvault_name = \"${{ secrets.MAIN_KEYVAULT_NAME }}\"" >> environments/main/terraform.tfvars
+            echo "acr" = \"${{ secrets.MAIN_ACR}}"" >> environments/dev/terraform.tfvars
+            echo "backendsa" = \"${{ secrets.MAIN.BACKENDSA}}"" >> environments/dev/terraform.tfvars
+            echo "backendcontainer" = \"${{ secrets.MAIN_BACKEND_CONTAINER}}"" >> environments/dev/terraform.tfvars
+            ;;
+          "dev")
+            echo "resource_group_name = \"${{ secrets.DEV_RESOURCE_GROUP_NAME }}\"" >> environments/dev/terraform.tfvars
+            echo "location = \"${{ secrets.DEV_LOCATION }}\"" >> environments/dev/terraform.tfvars
+            echo "service_principal_name = \"${{ secrets.DEV_SERVICE_PRINCIPAL_NAME }}\"" >> environments/dev/terraform.tfvars
+            echo "keyvault_name = \"${{ secrets.DEV_KEYVAULT_NAME }}\"" >> environments/dev/terraform.tfvars
+            echo "acr" = \"${{ secrets.DEV_ACR}}"" >> environments/dev/terraform.tfvars
+            echo "backendsa" = \"${{ secrets.DEV_BACKENDSA}}"" >> environments/dev/terraform.tfvars
+            echo "backendcontainer" = \"${{ secrets.DEV_BACKEND_CONTAINER}}"" >> environments/dev/terraform.tfvars
+            ;;
+          "stg")
+            echo "resource_group_name = \"${{ secrets.STG_RESOURCE_GROUP_NAME }}\"" >> environments/stg/terraform.tfvars
+            echo "location = \"${{ secrets.STG_LOCATION }}\"" >> environments/stg/terraform.tfvars
+            echo "service_principal_name = \"${{ secrets.STG_SERVICE_PRINCIPAL_NAME }}\"" >> environments/stg/terraform.tfvars
+            echo "keyvault_name = \"${{ secrets.STG_KEYVAULT_NAME }}\"" >> environments/stg/terraform.tfvars
+            echo "acr" = \"${{ secrets.STG_ACR}}"" >> environments/dev/terraform.tfvars
+            echo "backendsa" = \"${{ secrets.STG.BACKENDSA}}"" >> environments/dev/terraform.tfvars
+            echo "backendcontainer" = \"${{ secrets.STG_BACKEND_CONTAINER}}"" >> environments/dev/terraform.tfvars
+            ;;
+          *)
+            echo "Unknown environment"
+            ;;
+        esac
+      shell: bash
 
     # Run Terraform init
     - name: Terraform Init
