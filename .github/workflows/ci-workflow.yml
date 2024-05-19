@@ -83,7 +83,7 @@ jobs:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        GITHUB_REF_NAME: ${{ github.ref }}
+        GITHUB_REF_NAME: ${{ github.event.pull_request.base.ref }}
       run: |
          BRANCH_NAME=$(echo $GITHUB_REF_NAME | awk -F'/' '{print $3}')
          terraform plan -no-color -var-file=environments/${BRANCH_NAME}/terraform.tfvars
