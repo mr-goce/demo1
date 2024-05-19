@@ -78,7 +78,7 @@ jobs:
     - name: List Files in Directory
       run: |
         pwd
-        ls -la environments
+        ls -la 
 
     # Run a Terraform plan
     - name: Terraform plan
@@ -91,6 +91,7 @@ jobs:
         GITHUB_REF_NAME: ${{ github.event.pull_request.base.ref }}
       run: |
         #  BRANCH_NAME=$(echo $GITHUB_REF_NAME | awk -F'/' '{print $3}')
+        cd infrastructure
         terraform plan -var-file=environments/dev/terraform.tfvars
       # run: terraform plan -no-color -var-file=environments/dev/terraform.tfvars
 
