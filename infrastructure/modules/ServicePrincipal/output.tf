@@ -18,3 +18,8 @@ output "client_secret" {
   value       = azuread_service_principal_password.main.value
  
 }
+output "service_principal_application_id" {
+  description = "The object id of service principal. Can be used to assign roles to user."
+  value       = azuread_service_principal.main.application_id
+}
+
