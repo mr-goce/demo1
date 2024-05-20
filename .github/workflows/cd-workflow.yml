@@ -87,4 +87,4 @@ jobs:
         GITHUB_REF_NAME: ${{ github.ref }}
         BRANCH_NAME: ${{ env.BRANCH_NAME }}        #  BRANCH_NAME=$(echo $GITHUB_REF_NAME | awk -F'/' '{print $3}')
       run: |
-          terraform apply -auto-approve -var-file=environments/dev/terraform.tf
+          terraform apply -auto-approve -var-file=environments/dev/terraform.tfvars
