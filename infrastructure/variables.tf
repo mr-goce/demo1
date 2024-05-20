@@ -25,3 +25,11 @@ variable "backendsa" {
 variable "backendcontainer" {
   type = string
 }
+variable "aks_resource_group_name" {
+  type        = string
+  description = "AKS Resource group name"
+}
+
+variable "client_id" {
+  type = string
+}

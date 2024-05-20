@@ -17,7 +17,11 @@ resource "azurerm_resource_group" "demo_rg" {
   location = var.location
 
 }
+resource "azurerm_resource_group" "aks_demo_rg" {
+  name     = var.aks_resource_group_name
+  location = var.location
 
+}
 module "ServicePrincipal" {
   source                 = "./modules/ServicePrincipal"
   service_principal_name = var.service_principal_name
@@ -74,6 +78,9 @@ resource "azurerm_container_registry" "acr" {
   location            = var.location
   sku                 = "Basic"
   admin_enabled       = false
+  depends_on = [
+    azurerm_resource_group.demo_rg
+  ]
 }
 resource "azurerm_role_assignment" "example" {
   principal_id                     = module.ServicePrincipal.service_principal_object_id
@@ -81,3 +88,17 @@ resource "azurerm_role_assignment" "example" {
   scope                            = azurerm_container_registry.acr.id
   skip_service_principal_aad_check = true
 }
+#create Azure Kubernetes Service
+# module "aks" {
+#   source                 = "./modules/aks/"
+#   service_principal_name = var.service_principal_name
+#   client_id              = var.client_id
+#   client_secret          = module.ServicePrincipal.client_secret
+#   location               = var.location
+#   aks_resource_group_name    = var.aks_resource_group_name
+
+#   depends_on = [
+#     module.ServicePrincipal
+#   ]
+
+# }
