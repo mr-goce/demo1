@@ -1,0 +1,110 @@
+name: Push
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - stg
+
+permissions:
+      id-token: write
+      contents: read
+jobs: 
+  deploy-infra:
+    runs-on: ubuntu-latest
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Install the latest version of Terraform CLI 
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      
+    # Log into Azure with OIDC integration
+    - name: 'Az CLI login'
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Get Service Principal Secret from Key Vault
+      id: get-sp-secret
+      run: |
+        AZURE_CLIENT_SECRET=$(az keyvault secret show --name ${{ secrets.KV_SECRET_NAME }} --vault-name ${{ secrets.KV_NAME}} --query value -o tsv)
+        echo "ARM_CLIENT_SECRET=${AZURE_CLIENT_SECRET}" >> $GITHUB_ENV
+
+    # Run az commands to confirm sub access
+    - name: 'Run az commands'
+      run: |
+        az account show
+    - name: Ensure Environment Directory
+      working-directory: infrastructure
+      run: |
+        BRANCH_NAME=$(echo ${{ github.ref }} | awk -F'/' '{print $3}')
+        mkdir -p environments/$BRANCH_NAME
+  
+    - name: Set Terraform Variables
+      working-directory: infrastructure
+      run: |
+        # BRANCH_NAME=$(echo ${{ github.ref }} | awk -F'/' '{print $3}')
+        case $BRANCH_NAME in
+          "main")
+            echo "resource_group_name = \"${{ secrets.MAIN_RESOURCE_GROUP_NAME }}\"" >> environments/main/terraform.tfvars
+            echo "location = \"${{ secrets.MAIN_LOCATION }}\"" >> environments/main/terraform.tfvars
+            echo "service_principal_name = \"${{ secrets.MAIN_SERVICE_PRINCIPAL_NAME }}\"" >> environments/main/terraform.tfvars
+            echo "keyvault_name = \"${{ secrets.MAIN_KEYVAULT_NAME }}\"" >> environments/main/terraform.tfvars
+            echo "acr = \"${{ secrets.MAIN_ACR}}\"" >> environments/dev/terraform.tfvars
+            echo "backendsa = \"${{ secrets.MAIN.BACKENDSA}}\"" >> environments/dev/terraform.tfvars
+            echo "backendcontainer = \"${{ secrets.MAIN_BACKEND_CONTAINER}}\"" >> environments/dev/terraform.tfvars
+            ;;
+          "dev")
+            echo "resource_group_name = \"${{ secrets.DEV_RESOURCE_GROUP_NAME }}\"" >> environments/dev/terraform.tfvars
+            echo "location = \"${{ secrets.DEV_LOCATION }}\"" >>environments/dev/terraform.tfvars
+            echo "service_principal_name = \"${{ secrets.DEV_SERVICE_PRINCIPAL_NAME }}\"" >> environments/dev/terraform.tfvars
+            echo "keyvault_name = \"${{ secrets.DEV_KEYVAULT_NAME }}\"" >> environments/dev/terraform.tfvars
+            echo "acr = \"${{ secrets.DEV_ACR}}\"" >> environments/dev/terraform.tfvars
+            echo "backendsa = \"${{ secrets.DEV_BACKENDSA }}\"" >> environments/dev/terraform.tfvars
+            echo "backendcontainer = \"${{ secrets.DEV_BACKEND_CONTAINER }}\"" >> environments/dev/terraform.tfvars
+            echo "client_id = \"${{ secrets.AZURE_CLIENT_ID }}\"" >> environments/dev/terraform.tfvars
+            echo "aks_resource_group_name = \"${{ secrets.AKS_RESOURCE_GROUP_NAME }}\"" >> environments/dev/terraform.tfvars
+            ;;
+          "stg")
+            echo "resource_group_name = \"${{ secrets.STG_RESOURCE_GROUP_NAME }}\"" >> environments/stg/terraform.tfvars
+            echo "location = \"${{ secrets.STG_LOCATION }}\"" >> environments/stg/terraform.tfvars
+            echo "service_principal_name = \"${{ secrets.STG_SERVICE_PRINCIPAL_NAME }}\"" >> environments/stg/terraform.tfvars
+            echo "keyvault_name = \"${{ secrets.STG_KEYVAULT_NAME }}\"" >> environments/stg/terraform.tfvars
+            echo "acr = \"${{ secrets.STG_ACR}}\"" >> environments/dev/terraform.tfvars
+            echo "backendsa = \"${{ secrets.STG.BACKENDSA}}\"" >> environments/dev/terraform.tfvars
+            echo "backendcontainer = \"${{ secrets.STG_BACKEND_CONTAINER }}\"" >> environments/dev/terraform.tfvars
+            ;;
+          *)
+            echo "Unknown environment"
+            ;;
+        esac
+      shell: bash
+    # Run Terraform init
+    - name: Terraform Init
+      id: init
+      env:
+        STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
+        CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+        RESOURCE_GROUP_NAME: ${{ secrets.RESOURCE_GROUP_NAME }}
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      run: terraform init -backend-config="storage_account_name=$STORAGE_ACCOUNT" -backend-config="container_name=$CONTAINER_NAME" -backend-config="resource_group_name=$RESOURCE_GROUP_NAME"
+
+    # Run a Terraform apply
+    - name: Terraform apply
+      id: apply
+      env:
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        GITHUB_REF_NAME: ${{ github.ref }}        #  BRANCH_NAME=$(echo $GITHUB_REF_NAME | awk -F'/' '{print $3}')
+      run: |
+          BRANCH_NAME=$(echo $GITHUB_REF_NAME | awk -F'/' '{print $3}')
+          terraform apply -auto-approve -var-file=environments/$BRANCH_NAME/terraform.tf
