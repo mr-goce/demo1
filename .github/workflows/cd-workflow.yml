@@ -36,15 +36,18 @@ jobs:
         AZURE_CLIENT_SECRET=$(az keyvault secret show --name ${{ secrets.KV_SECRET_NAME }} --vault-name ${{ secrets.KV_NAME}} --query value -o tsv)
         echo "ARM_CLIENT_SECRET=${AZURE_CLIENT_SECRET}" >> $GITHUB_ENV
 
-    - name: Extract Branch Name
+    - name: Extract Branch Name and make a new directory
       id: extract_branch
-      run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-
-    - name: Ensure Environment Directory
-      working-directory: infrastructure
       run: |
-        # BRANCH_NAME=$(echo ${{ github.ref }} | awk -F'/' '{print $3}')
+        BRANCH_NAME=${GITHUB_REF#refs/heads/}
+        echo "Branch name is $BRANCH_NAME"
         mkdir -p environments/$BRANCH_NAME
+   
+
+    # - name: Ensure Environment Directory
+    #   working-directory: infrastructure
+    #   run: |
+    #     mkdir -p environments/$BRANCH_NAME
   
     - name: Set Terraform Variables
       working-directory: infrastructure
@@ -107,5 +110,4 @@ jobs:
         GITHUB_REF_NAME: ${{ github.ref }}
         BRANCH_NAME: ${{ env.BRANCH_NAME }}        #  BRANCH_NAME=$(echo $GITHUB_REF_NAME | awk -F'/' '{print $3}')
       run: |
-          # BRANCH_NAME=$(echo $GITHUB_REF_NAME | awk -F'/' '{print $3}')
           terraform apply -auto-approve -var-file=environments/$BRANCH_NAME/terraform.tf
