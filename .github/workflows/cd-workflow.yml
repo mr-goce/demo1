@@ -43,12 +43,14 @@ jobs:
     - name: Ensure Environment Directory
       working-directory: infrastructure
       run: |
-        mkdir -p environments/${{ github.event.pull_request.base.ref }}
+        BRANCH_NAME=$(echo ${{ github.ref }} | awk -F'/' '{print $3}')
+        mkdir -p environments/$BRANCH_NAME
   
     - name: Set Terraform Variables
       working-directory: infrastructure
       run: |
-        case ${{ github.event.pull_request.base.ref }} in
+        # BRANCH_NAME=$(echo ${{ github.ref }} | awk -F'/' '{print $3}')
+        case $BRANCH_NAME in
           "main")
             echo "resource_group_name = \"${{ secrets.MAIN_RESOURCE_GROUP_NAME }}\"" >> environments/main/terraform.tfvars
             echo "location = \"${{ secrets.MAIN_LOCATION }}\"" >> environments/main/terraform.tfvars
@@ -67,6 +69,7 @@ jobs:
             echo "backendsa = \"${{ secrets.DEV_BACKENDSA }}\"" >> environments/dev/terraform.tfvars
             echo "backendcontainer = \"${{ secrets.DEV_BACKEND_CONTAINER }}\"" >> environments/dev/terraform.tfvars
             echo "client_id = \"${{ secrets.AZURE_CLIENT_ID }}\"" >> environments/dev/terraform.tfvars
+            echo "aks_resource_group_name = \"${{ secrets.AKS_RESOURCE_GROUP_NAME }}\"" >> environments/dev/terraform.tfvars
             ;;
           "stg")
             echo "resource_group_name = \"${{ secrets.STG_RESOURCE_GROUP_NAME }}\"" >> environments/stg/terraform.tfvars
@@ -101,4 +104,7 @@ jobs:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      run: terraform apply -auto-approve
+        GITHUB_REF_NAME: ${{ github.ref }}        #  BRANCH_NAME=$(echo $GITHUB_REF_NAME | awk -F'/' '{print $3}')
+      run: |
+          BRANCH_NAME=$(echo $GITHUB_REF_NAME | awk -F'/' '{print $3}')
+          terraform apply -auto-approve -var-file=environments/$BRANCH_NAME/terraform.tf

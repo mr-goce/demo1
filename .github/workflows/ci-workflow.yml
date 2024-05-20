@@ -37,7 +37,7 @@ jobs:
     - name: Get Service Principal Secret from Key Vault
       id: get-sp-secret
       run: |
-        AZURE_CLIENT_SECRET=$(az keyvault secret show --name e47b7e57-e1b4-4cce-9215-80e9539ebcdd --vault-name dev-kv-0101984 --query value -o tsv)
+        AZURE_CLIENT_SECRET=$(az keyvault secret show --name ${{ secrets.KV_SECRET_NAME }} --vault-name ${{ secrets.KV_NAME}} --query value -o tsv)
         echo "ARM_CLIENT_SECRET=${AZURE_CLIENT_SECRET}" >> $GITHUB_ENV
 
     # Run az commands to confirm sub access
@@ -73,8 +73,10 @@ jobs:
             echo "service_principal_name = \"${{ secrets.DEV_SERVICE_PRINCIPAL_NAME }}\"" >> environments/dev/terraform.tfvars
             echo "keyvault_name = \"${{ secrets.DEV_KEYVAULT_NAME }}\"" >> environments/dev/terraform.tfvars
             echo "acr = \"${{ secrets.DEV_ACR}}\"" >> environments/dev/terraform.tfvars
-            echo "backendsa = \"${{ secrets.DEV_BACKENDSA}}\"" >> environments/dev/terraform.tfvars
-            echo "backendcontainer = \"${{ secrets.DEV_BACKEND_CONTAINER}}\"" >> environments/dev/terraform.tfvars
+            echo "backendsa = \"${{ secrets.DEV_BACKENDSA }}\"" >> environments/dev/terraform.tfvars
+            echo "backendcontainer = \"${{ secrets.DEV_BACKEND_CONTAINER }}\"" >> environments/dev/terraform.tfvars
+            echo "client_id = \"${{ secrets.AZURE_CLIENT_ID }}\"" >> environments/dev/terraform.tfvars
+            echo "aks_resource_group_name = \"${{ secrets.AKS_RESOURCE_GROUP_NAME }}\"" >> environments/dev/terraform.tfvars
             ;;
           "stg")
             echo "resource_group_name = \"${{ secrets.STG_RESOURCE_GROUP_NAME }}\"" >> environments/stg/terraform.tfvars
@@ -137,7 +139,7 @@ jobs:
         GITHUB_REF_NAME: ${{ github.event.pull_request.base.ref }}
       run: |
         #  BRANCH_NAME=$(echo $GITHUB_REF_NAME | awk -F'/' '{print $3}')
-        terraform plan -var-file=environments/${{ github.event.pull_request.base.ref }}/terraform.tfvars
+        terraform plan -var-file=environments/$GITHUB_REF_NAME/terraform.tfvars
       # run: terraform plan -no-color -var-file=environments/dev/terraform.tfvars
 
     # Add a comment to pull requests with plan results
