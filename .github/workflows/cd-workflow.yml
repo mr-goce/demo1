@@ -66,6 +66,7 @@ jobs:
     # Run Terraform init
     - name: Terraform Init
       id: init
+      working-directory: infrastructure
       env:
         STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
         CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
