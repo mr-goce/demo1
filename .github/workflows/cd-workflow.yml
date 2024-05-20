@@ -38,6 +38,7 @@ jobs:
 
     - name: Extract Branch Name and make a new directory
       id: extract_branch
+      working-directory: infrastructure
       run: |
         BRANCH_NAME=${GITHUB_REF#refs/heads/}
         echo "Branch name is $BRANCH_NAME"
@@ -76,6 +77,7 @@ jobs:
 
     # Run a Terraform apply
     - name: Terraform apply
+      working-directory: infrastructure
       id: apply
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
