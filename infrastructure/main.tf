@@ -89,16 +89,16 @@ resource "azurerm_role_assignment" "example" {
   skip_service_principal_aad_check = true
 }
 #create Azure Kubernetes Service
-# module "aks" {
-#   source                 = "./modules/aks/"
-#   service_principal_name = var.service_principal_name
-#   client_id              = var.client_id
-#   client_secret          = module.ServicePrincipal.client_secret
-#   location               = var.location
-#   aks_resource_group_name    = var.aks_resource_group_name
+module "aks" {
+  source                 = "./modules/aks/"
+  service_principal_name = var.service_principal_name
+  client_id              = var.client_id
+  client_secret          = module.ServicePrincipal.client_secret
+  location               = var.location
+  aks_resource_group_name    = var.aks_resource_group_name
 
-#   depends_on = [
-#     module.ServicePrincipal
-#   ]
+  depends_on = [
+    module.ServicePrincipal
+  ]
 
-# }
+}
