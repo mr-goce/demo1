@@ -90,12 +90,12 @@ resource "azurerm_role_assignment" "example" {
 }
 #create Azure Kubernetes Service
 module "aks" {
-  source                 = "./modules/aks/"
-  service_principal_name = var.service_principal_name
-  client_id              = var.client_id
-  client_secret          = module.ServicePrincipal.client_secret
-  location               = var.location
-  aks_resource_group_name    = var.aks_resource_group_name
+  source                  = "./modules/aks/"
+  service_principal_name  = var.service_principal_name
+  client_id               = var.client_id
+  client_secret           = module.ServicePrincipal.client_secret
+  location                = var.location
+  aks_resource_group_name = var.aks_resource_group_name
 
   depends_on = [
     module.ServicePrincipal
